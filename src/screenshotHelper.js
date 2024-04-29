@@ -43,6 +43,8 @@ async function captureGoogleSheet(sheetUrl, fullPage) {
 
     } else {
         
+        await delay(5000);
+
         // Fallback to full page screenshot if the specific area is not found
         const screenshotBuffer = await page.screenshot({ 
             // path: 'screenshot.png',
