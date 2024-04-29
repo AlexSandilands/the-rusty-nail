@@ -6,7 +6,6 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 async function captureGoogleSheet(sheetUrl, fullPage) {
     
     const browser = await puppeteer.launch({
-        headless: false,
         defaultViewport: null,
         args: [
             '--no-sandbox',
