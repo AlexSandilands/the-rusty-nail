@@ -6,19 +6,19 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 async function captureGoogleSheet(sheetUrl, fullPage) {
     
     const browser = await puppeteer.launch({
-        // headless: false,
+        headless: false,
         defaultViewport: null,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--window-size=1920,1080'
+            '--start-maximized'
         ]
     });
 
     const page = await browser.newPage();
 
     // Set viewport to a large size to capture most sheets without scrolling
-    // await page.setViewport({ width: 1920, height: 1080 });
+    await page.setViewport({ width: 0, height: 0 });
     await page.goto(sheetUrl, { waitUntil: 'networkidle2' });
 
     // Get the element of the cells of the sheet, no labels or menus etc
