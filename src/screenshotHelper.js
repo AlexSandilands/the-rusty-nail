@@ -10,14 +10,13 @@ async function captureGoogleSheet(sheetUrl, fullPage) {
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--start-maximized'
         ]
     });
 
     const page = await browser.newPage();
 
     // Set viewport to a large size to capture most sheets without scrolling
-    await page.setViewport({ width: 0, height: 0 });
+    await page.setViewport({ width: 1920, height: 1080 });
     await page.goto(sheetUrl, { waitUntil: 'networkidle2' });
 
     // Get the element of the cells of the sheet, no labels or menus etc
