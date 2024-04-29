@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 
 const cellsSelector = '#\\30-scrollable > div:nth-child(2)';
-
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 async function captureGoogleSheet(sheetUrl, fullPage) {
@@ -23,9 +22,8 @@ async function captureGoogleSheet(sheetUrl, fullPage) {
         
         // Click in the middle of the sheet to move the selected cell out of the screenshot
         await page.click(cellsSelector, { clickCount: 1, delay: 100 });
-        await delay(1000);
 
-        // Take a picture of the area using hard coded width and height and the x/y of the bounding box of the selected element
+        // Take a picture of the area using hard coded width and height
         const screenshotBuffer = await element.screenshot({
             // path: 'screenshot.png',
             clip: {
@@ -43,8 +41,6 @@ async function captureGoogleSheet(sheetUrl, fullPage) {
 
     } else {
         
-        await delay(5000);
-
         // Fallback to full page screenshot if the specific area is not found
         const screenshotBuffer = await page.screenshot({ 
             // path: 'screenshot.png',

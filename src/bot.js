@@ -1,10 +1,9 @@
 require('dotenv').config();
 
-const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
-const { captureGoogleSheet } = require('./screenshotHelper');
+const { Client, GatewayIntentBits } = require('discord.js');
+const { sendCalendarLink, sendCalendarPic } = require('./commands.js');
 
 const token = process.env.DISCORD_TOKEN;
-const sheetsUrl = process.env.GOOGLE_SHEETS_URL;
 
 const client = new Client({
     intents: [
@@ -43,28 +42,5 @@ client.on('messageCreate', message => {
         }
     }
 });
-
-function sendCalendarLink(message) {
-
-    message.channel.send(sheetsUrl)
-            .then(() => console.log('Link sent successfully!'))
-            .catch(err => console.error('Error sending message:', err));
-}
-
-async function sendCalendarPic(message) {
-    message.channel.send("Taking screenshot...");
-
-    try {
-
-        const screenshotBuffer = await captureGoogleSheet(sheetsUrl, true);
-        const attachment = new AttachmentBuilder(screenshotBuffer, { name: 'screenshot.png' });
-        message.channel.send({ files: [attachment] });
-
-    } catch (error) {
-        
-        console.error('Failed to capture screenshot:', error);
-        message.channel.send('Failed to capture the screenshot. Please check the logs.');
-    }
-}
 
 client.login(token);
