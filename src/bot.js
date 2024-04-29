@@ -56,7 +56,7 @@ async function sendCalendarPic(message) {
 
     try {
 
-        const screenshotBuffer = await captureGoogleSheet(sheetsUrl);
+        const screenshotBuffer = await captureGoogleSheet(sheetsUrl, true);
         const attachment = new AttachmentBuilder(screenshotBuffer, { name: 'screenshot.png' });
         message.channel.send({ files: [attachment] });
 
