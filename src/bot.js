@@ -1,9 +1,21 @@
-require('dotenv').config();
+// Load environment variables from .env file only in development
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 
 const { Client, GatewayIntentBits } = require('discord.js');
 const { sendCalendarLink, sendCalendarPic } = require('./commands.js');
 
 const token = process.env.DISCORD_TOKEN;
+
+if (!token) {
+    console.error('Error: DISCORD_TOKEN is not defined.');
+    process.exit(1);
+}
+
+const COMMAND_PREFIX = '/calendar';
+const USAGE_MESSAGE = 'Please specify a command: link or pic';
+const INVALID_COMMAND_MESSAGE = 'Invalid command. Use /calendar link or /calendar pic.';
 
 const client = new Client({
     intents: [
@@ -15,32 +27,40 @@ const client = new Client({
 
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-    
+    console.log(`Bot is operating in ${client.guilds.cache.size} server(s).`);
+
     client.user.setActivity('/calendar', { type: 'LISTENING' });
 });
 
-client.on('messageCreate', message => {
-   
-    if (!message.author.bot && message.content.startsWith('/calendar')) {
+client.on('messageCreate', async message => {
+    
+    if (!message.author.bot && message.content.toLowerCase().startsWith(COMMAND_PREFIX)) {
         
-        const arguments = message.content.split(" ");
+        const args = message.content.slice(COMMAND_PREFIX.length).trim().split(/ +/);
+        const command = args.shift().toLowerCase();
 
-        if (arguments.length < 2) {
-            return message.channel.send('Please specify a command: link or pic');
+        if (!command) {
+            return message.channel.send(USAGE_MESSAGE);
         }
-        
-        const command = arguments[1];
-        switch (command) {
-            case "link":
-                sendCalendarLink(message);
+
+        try {
+            switch (command) {
+            case 'link':
+                await sendCalendarLink(message);
                 break;
-            case "pic":
-                sendCalendarPic(message);
+            case 'pic':
+                await sendCalendarPic(message);
                 break;
             default:
-                message.channel.send('Invalid command. Use /calendar link or /calendar pic.');
+                message.channel.send(INVALID_COMMAND_MESSAGE);
+            }
+        } catch (error) {
+            console.error(`Error executing command '${command}':`, error);
+            message.channel.send('You stabbed yourself with the Nail! (Tell Riv something is broken).');
         }
     }
 });
 
-client.login(token);
+client.login(token)
+    .then(() => console.log('Bot logged in successfully'))
+    .catch(err => console.error('Failed to log in:', err));
