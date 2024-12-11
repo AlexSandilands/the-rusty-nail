@@ -5,6 +5,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const { Client, GatewayIntentBits } = require('discord.js');
 const { sendCalendarLink, sendCalendarPic } = require('./commands.js');
+const ScreenshotSize = require('./constants');
 
 const token = process.env.DISCORD_TOKEN;
 
@@ -49,7 +50,10 @@ client.on('messageCreate', async message => {
                 await sendCalendarLink(message);
                 break;
             case 'pic':
-                await sendCalendarPic(message);
+                await sendCalendarPic(message, ScreenshotSize.SMALL);
+                break;
+            case 'pic-large':
+                await sendCalendarPic(message, ScreenshotSize.LARGE);
                 break;
             default:
                 message.channel.send(INVALID_COMMAND_MESSAGE);

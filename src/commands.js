@@ -12,12 +12,12 @@ function sendCalendarLink(message) {
             .catch(err => console.error('Error sending message:', err));
 }
 
-async function sendCalendarPic(message) {
+async function sendCalendarPic(message, screenshotSize) {
     message.channel.send("Taking screenshot...");
 
     try {
 
-        const screenshotBuffer = await captureGoogleSheet(sheetsUrl, false);
+        const screenshotBuffer = await captureGoogleSheet(sheetsUrl, screenshotSize);
         const attachment = new AttachmentBuilder(screenshotBuffer, { name: 'screenshot.png' });
         message.channel.send({ files: [attachment] });
 
