@@ -4,7 +4,7 @@ const {
     getNextScheduledDate,
     getUpcomingScheduledDates,
     resolveScheduledDate
-} = require('../../utils/datetime-helper');
+} = require('../../utils/schedule-helper');
 const { ConfirmSchedule } = require('../../constants');
 
 const PLAYERS_ROLE_ID = process.env.PLAYERS_ROLE_ID;
