@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const { REST, Routes, SlashCommandBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
-const { ConfirmSchedule, DndRules } = require('./constants');
+const { ConfirmSchedule, DndRules, DndMoods } = require('./constants');
 const { getUpcomingWeekdayOccurrences } = require('./utils/datetime-helper');
 
 const token = process.env.DISCORD_TOKEN;
@@ -49,6 +49,11 @@ const classChoices = Object.entries(DndRules)
         value: key
     }));
 
+const reactMoodChoices = Object.keys(DndMoods).map(mood => ({
+    name: mood.charAt(0).toUpperCase() + mood.slice(1),
+    value: mood
+}));
+
 const commands = [
     new SlashCommandBuilder()
         .setName('nail')
@@ -85,6 +90,26 @@ const commands = [
                             option
                                 .setName('tag')
                                 .setDescription('Mention the players role in the message.'))))
+        .addSubcommandGroup(group =>
+            group
+                .setName('react')
+                .setDescription('Post a mood-based D&D GIF.')
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('mood')
+                        .setDescription('Share a GIF matching a specific mood.')
+                        .addStringOption(option => {
+                            option
+                                .setName('mood')
+                                .setDescription('Choose the mood for the GIF.')
+                                .setRequired(true);
+
+                            if (reactMoodChoices.length > 0) {
+                                option.addChoices(...reactMoodChoices);
+                            }
+
+                            return option;
+                        })))
         .addSubcommandGroup(group =>
             group
                 .setName('rules')

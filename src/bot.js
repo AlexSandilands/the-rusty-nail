@@ -7,6 +7,7 @@ const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js'
 const { sendCalendarLink, sendCalendarPic } = require('./commands/calendar/calendar-commands.js');
 const { sendConfirmRequest, sendConfirmList } = require('./commands/confirm/confirm-commands.js');
 const { sendRulesPhb, sendRulesClass } = require('./commands/rules/rules-commands.js');
+const { sendReactMood } = require('./commands/react/react-commands.js');
 const { ScreenshotSize } = require('./constants');
 
 const token = process.env.DISCORD_TOKEN;
@@ -69,6 +70,9 @@ client.on(Events.InteractionCreate, async interaction => {
                     ephemeral: true
                 }).catch(() => {});
             }
+            break;
+        case 'react':
+            await sendReactMood(interaction);
             break;
         case 'rules':
             switch (subcommand) {

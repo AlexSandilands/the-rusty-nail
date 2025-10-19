@@ -19,8 +19,18 @@ const DndRules = Object.freeze({
     Wizard: 'https://www.dndbeyond.com/sources/dnd/phb-2024/character-classes-continued#Wizard',
 });
 
+const DndMoods = Object.freeze({
+    excited: 'dnd excited',
+    worried: 'dnd worried',
+    scared: 'dnd scared',
+    happy: 'dnd happy',
+    sad: 'dnd sad',
+    angry: 'dnd angry'
+});
+
 module.exports = {
     ScreenshotSize,
     ConfirmSchedule,
-    DndRules
+    DndRules,
+    DndMoods
 };
