@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="RustyNail.png" alt="The Rusty Nail logo" width="160" />
+  <img src="./assets/RustyNail.png" alt="The Rusty Nail logo" width="160" />
   <h1>The Rusty Nail</h1>
   <p><em>Discord companion bot for our D&D server</em></p>
 
