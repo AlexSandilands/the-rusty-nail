@@ -28,7 +28,7 @@
 - [Troubleshooting](#troubleshooting)
 
 ## Overview
-The Rusty Nail is a small utility bot that helps run weekly game-night logistics (confirmation polls, calendar links and screenshots) and adds a touch of flavor with mood-based GIFs and quick links to rules references. 【7†source】
+The Rusty Nail is a small utility bot that helps run weekly game-night logistics (confirmation polls, calendar links and screenshots) and adds a touch of flavor with mood-based GIFs and quick links to rules references. 
 
 ## Slash Commands
 <details>
@@ -45,7 +45,7 @@ The Rusty Nail is a small utility bot that helps run weekly game-night logistics
 | <code>/nail rules class &lt;class&gt;</code> | Link directly to the selected class section (Cleric, Druid, Ranger, Rogue, Wizard). |
 </details>
 
-<sup>Source: original command list.</sup>【7†source】
+<sup>Source: original command list.</sup>
 
 ---
 
@@ -58,12 +58,12 @@ Create a `.env` file (already ignored by git) with:
 - `TENOR_API_KEY` – Tenor GIF API key.
 - *(Optional)* `GUILD_ID` – Populate only for guild‑scoped deploys during local testing.
 
-<sup>Source: original env var section.</sup>【7†source】
+<sup>Source: original env var section.</sup>
 
 ### Where to get the keys
 - **Discord credentials:** Developer Portal → Applications → your bot → **Bot** (token) and **OAuth2 → General** (client ID). Copy the role ID by right‑clicking the role in Discord with Developer Mode enabled.
 - **Tenor API key:** See Google’s Tenor quickstart and create an API key under **Credentials**.
-- **Google Sheets URL:** Share the target sheet and use the published viewable URL. 【7†source】
+- **Google Sheets URL:** Share the target sheet and use the published viewable URL. 
 
 ---
 
@@ -77,7 +77,7 @@ Create a `.env` file (already ignored by git) with:
    ```bash
    npm start
    ```
-   The bot logs in using `DISCORD_TOKEN` and responds to slash commands. 【7†source】
+   The bot logs in using `DISCORD_TOKEN` and responds to slash commands. 
 
 ---
 
@@ -88,7 +88,7 @@ Guild deploys are useful when iterating on command structure:
    ```bash
    npm run deploy
    ```
-3. Commands update instantly for that guild. Remove or unset `GUILD_ID` to revert to global deploys. 【7†source】
+3. Commands update instantly for that guild. Remove or unset `GUILD_ID` to revert to global deploys. 
 
 ---
 
@@ -101,7 +101,7 @@ The scheduled workflow lives at `.github/workflows/deploy-commands.yml`. It runs
    - `DISCORD_TOKEN`
    - `CLIENT_ID`
    - *(Optional)* `GUILD_ID` for guild‑scoped deploys. Otherwise leave it unset for global commands.
-3. The workflow checks out the repo, installs with `npm ci`, and runs `npm run deploy`. 【7†source】
+3. The workflow checks out the repo, installs with `npm ci`, and runs `npm run deploy`. 
 
 ---
 
