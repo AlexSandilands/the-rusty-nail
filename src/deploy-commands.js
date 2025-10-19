@@ -1,6 +1,9 @@
 require('dotenv').config();
 
 const { REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { DateTime } = require('luxon');
+const { ConfirmSchedule, DndRules } = require('./constants');
+const { getUpcomingWeekdayOccurrences } = require('./utils/datetime-helper');
 
 const token = process.env.DISCORD_TOKEN;
 const clientId = process.env.CLIENT_ID;
@@ -16,10 +19,96 @@ if (!clientId) {
     process.exit(1);
 }
 
+const confirmDateChoices = (() => {
+    try {
+        const occurrences = getUpcomingWeekdayOccurrences(
+            new Date(),
+            ConfirmSchedule.WEEKDAY,
+            ConfirmSchedule.HOUR_LOCAL,
+            ConfirmSchedule.TIME_ZONE,
+            4
+        );
+
+        return occurrences.map(date => {
+            const zoned = DateTime.fromJSDate(date, { zone: ConfirmSchedule.TIME_ZONE });
+            return {
+                name: zoned.toFormat('ccc d LLL'),
+                value: zoned.toISODate()
+            };
+        });
+    } catch (error) {
+        console.warn('Failed to build confirm date choices:', error);
+        return [];
+    }
+})();
+
+const classChoices = Object.entries(DndRules)
+    .filter(([key]) => key !== 'PHB')
+    .map(([key]) => ({
+        name: key,
+        value: key
+    }));
+
 const commands = [
     new SlashCommandBuilder()
         .setName('nail')
         .setDescription('Interact with The Rusty Nail bot.')
+        .addSubcommandGroup(group =>
+            group
+                .setName('confirm')
+                .setDescription('Confirmation utilities.')
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('prompt')
+                        .setDescription('Send a confirmation prompt for the selected Saturday at 8 PM NZ.')
+                        .addBooleanOption(option =>
+                            option
+                                .setName('tag')
+                                .setDescription('Mention the players role in the confirmation message.'))
+                        .addStringOption(option => {
+                            option
+                                .setName('date')
+                                .setDescription('Pick from upcoming Saturdays (defaults to next upcoming).')
+                                .setRequired(false);
+
+                            if (confirmDateChoices.length > 0) {
+                                option.addChoices(...confirmDateChoices);
+                            }
+
+                            return option;
+                        }))
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('list')
+                        .setDescription('List the next four Saturdays at 8 PM NZ.')
+                        .addBooleanOption(option =>
+                            option
+                                .setName('tag')
+                                .setDescription('Mention the players role in the message.'))))
+        .addSubcommandGroup(group =>
+            group
+                .setName('rules')
+                .setDescription('D&D rules references.')
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('phb')
+                        .setDescription('Show the Player\'s Handbook rules link.'))
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName('class')
+                        .setDescription('Show a class rules link from the Player\'s Handbook.')
+                        .addStringOption(option => {
+                            option
+                                .setName('class')
+                                .setDescription('Select a class to view its rules.')
+                                .setRequired(true);
+
+                            if (classChoices.length > 0) {
+                                option.addChoices(...classChoices);
+                            }
+
+                            return option;
+                        })))
         .addSubcommandGroup(group =>
             group
                 .setName('calendar')

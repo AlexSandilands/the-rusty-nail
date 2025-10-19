@@ -4,8 +4,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
-const { sendCalendarLink, sendCalendarPic } = require('./commands.js');
-const ScreenshotSize = require('./constants');
+const { sendCalendarLink, sendCalendarPic } = require('./commands/calendar/calendar-commands.js');
+const { sendConfirmRequest, sendConfirmList } = require('./commands/confirm/confirm-commands.js');
+const { sendRulesPhb, sendRulesClass } = require('./commands/rules/rules-commands.js');
+const { ScreenshotSize } = require('./constants');
 
 const token = process.env.DISCORD_TOKEN;
 
@@ -39,37 +41,77 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
     }
 
-    const subcommandGroup = interaction.options.getSubcommandGroup(false);
-
-    if (subcommandGroup !== 'calendar') {
-        await interaction.reply({
-            content: 'That Nail command is not implemented yet.',
-            ephemeral: true
-        }).catch(() => {});
-        return;
-    }
-
-    const subcommand = interaction.options.getSubcommand();
-
     try {
-        switch (subcommand) {
-        case 'link':
-            await sendCalendarLink(interaction);
+        const subcommandGroup = interaction.options.getSubcommandGroup(false);
+        const subcommand = interaction.options.getSubcommand();
+
+        switch (subcommandGroup ?? '') {
+        case '':
+            switch (subcommand) {
+            default:
+                await interaction.reply({
+                    content: 'That Nail command is not implemented yet.',
+                    ephemeral: true
+                }).catch(() => {});
+            }
             break;
-        case 'pic': {
-            const sizeChoice = interaction.options.getString('size') ?? 'small';
-            const screenshotSize = sizeChoice === 'large' ? ScreenshotSize.LARGE : ScreenshotSize.SMALL;
-            await sendCalendarPic(interaction, screenshotSize);
+        case 'confirm':
+            switch (subcommand) {
+            case 'prompt':
+                await sendConfirmRequest(interaction);
+                break;
+            case 'list':
+                await sendConfirmList(interaction);
+                break;
+            default:
+                await interaction.reply({
+                    content: 'That confirm command is not implemented yet.',
+                    ephemeral: true
+                }).catch(() => {});
+            }
             break;
-        }
+        case 'rules':
+            switch (subcommand) {
+            case 'phb':
+                await sendRulesPhb(interaction);
+                break;
+            case 'class':
+                await sendRulesClass(interaction);
+                break;
+            default:
+                await interaction.reply({
+                    content: 'That rules command is not implemented yet.',
+                    ephemeral: true
+                }).catch(() => {});
+            }
+            break;
+        case 'calendar':
+            switch (subcommand) {
+            case 'link':
+                await sendCalendarLink(interaction);
+                break;
+            case 'pic': {
+                const sizeChoice = interaction.options.getString('size') ?? 'small';
+                const screenshotSize = sizeChoice === 'large' ? ScreenshotSize.LARGE : ScreenshotSize.SMALL;
+                await sendCalendarPic(interaction, screenshotSize);
+                break;
+            }
+            default:
+                await interaction.reply({
+                    content: 'That calendar command is not implemented yet.',
+                    ephemeral: true
+                }).catch(() => {});
+            }
+            break;
         default:
             await interaction.reply({
-                content: 'That calendar command is not implemented yet.',
+                content: 'That Nail command is not implemented yet.',
                 ephemeral: true
             }).catch(() => {});
         }
     } catch (error) {
-        console.error(`Error executing slash command '${subcommand}':`, error);
+        const subcommand = interaction.options.getSubcommand(false);
+        console.error(`Error executing slash command '${subcommand ?? 'unknown'}':`, error);
 
         if (error && error.handled) {
             return;

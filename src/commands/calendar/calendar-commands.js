@@ -1,8 +1,8 @@
 require('dotenv').config();
 
 const { AttachmentBuilder } = require('discord.js');
-const { captureGoogleSheet } = require('./screenshotHelper');
-const ScreenshotSize = require('./constants');
+const { captureGoogleSheet } = require('../../utils/screenshot-helper');
+const { ScreenshotSize } = require('../../constants');
 
 const sheetsUrl = process.env.GOOGLE_SHEETS_URL;
 
