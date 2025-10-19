@@ -45,8 +45,6 @@ The Rusty Nail is a small utility bot that helps run weekly game-night logistics
 | <code>/nail rules class &lt;class&gt;</code> | Link directly to the selected class section (Cleric, Druid, Ranger, Rogue, Wizard). |
 </details>
 
-<sup>Source: original command list.</sup>
-
 ---
 
 ## Environment Variables
@@ -57,8 +55,6 @@ Create a `.env` file (already ignored by git) with:
 - `PLAYERS_ROLE_ID` – Role ID to mention when `tag` is true.
 - `TENOR_API_KEY` – Tenor GIF API key.
 - *(Optional)* `GUILD_ID` – Populate only for guild‑scoped deploys during local testing.
-
-<sup>Source: original env var section.</sup>
 
 ### Where to get the keys
 - **Discord credentials:** Developer Portal → Applications → your bot → **Bot** (token) and **OAuth2 → General** (client ID). Copy the role ID by right‑clicking the role in Discord with Developer Mode enabled.
