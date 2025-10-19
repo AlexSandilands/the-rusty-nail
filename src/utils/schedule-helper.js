@@ -4,14 +4,14 @@ function normalizeWeekday(weekday) {
     return weekday % 7; // Luxon: Sunday=7, convert to 0; others keep value.
 }
 
-function getNextWeekdayAtHour(baseDate, targetDayIndex, targetHour, timeZone) {
+function getNextWeekdayAtTime(baseDate, targetDayIndex, targetHour, targetMinute, timeZone) {
     const base = DateTime.fromJSDate(baseDate, { zone: timeZone });
     const baseDayIndex = normalizeWeekday(base.weekday);
 
     let daysUntilTarget = (targetDayIndex - baseDayIndex + 7) % 7;
     let target = base.plus({ days: daysUntilTarget }).set({
         hour: targetHour,
-        minute: 0,
+        minute: targetMinute,
         second: 0,
         millisecond: 0
     });
@@ -23,12 +23,12 @@ function getNextWeekdayAtHour(baseDate, targetDayIndex, targetHour, timeZone) {
     return target.toUTC().toJSDate();
 }
 
-function getUpcomingWeekdayOccurrences(baseDate, targetDayIndex, targetHour, timeZone, count) {
+function getUpcomingWeekdayOccurrences(baseDate, targetDayIndex, targetHour, targetMinute, timeZone, count) {
     const occurrences = [];
     let cursor = baseDate;
 
     for (let i = 0; i < count; i += 1) {
-        const next = getNextWeekdayAtHour(cursor, targetDayIndex, targetHour, timeZone);
+        const next = getNextWeekdayAtTime(cursor, targetDayIndex, targetHour, targetMinute, timeZone);
         occurrences.push(next);
         cursor = new Date(next.getTime() + 60_000);
     }
@@ -36,25 +36,31 @@ function getUpcomingWeekdayOccurrences(baseDate, targetDayIndex, targetHour, tim
     return occurrences;
 }
 
-function getNextScheduledDate(baseDate, schedule) {
-    const { weekday, hourLocal, timeZone } = schedule;
-    return getNextWeekdayAtHour(baseDate, weekday, hourLocal, timeZone);
+function getNextScheduledDate(baseDate, schedule, timeOverride) {
+    const { weekday, timeZone } = schedule;
+    const hourLocal = timeOverride?.hourLocal ?? schedule.hourLocal;
+    const minuteLocal = timeOverride?.minuteLocal ?? schedule.minuteLocal ?? 0;
+    return getNextWeekdayAtTime(baseDate, weekday, hourLocal, minuteLocal, timeZone);
 }
 
-function getUpcomingScheduledDates(count, schedule, baseDate = new Date()) {
-    const { weekday, hourLocal, timeZone } = schedule;
-    return getUpcomingWeekdayOccurrences(baseDate, weekday, hourLocal, timeZone, count);
+function getUpcomingScheduledDates(count, schedule, baseDate = new Date(), timeOverride) {
+    const { weekday, timeZone } = schedule;
+    const hourLocal = timeOverride?.hourLocal ?? schedule.hourLocal;
+    const minuteLocal = timeOverride?.minuteLocal ?? schedule.minuteLocal ?? 0;
+    return getUpcomingWeekdayOccurrences(baseDate, weekday, hourLocal, minuteLocal, timeZone, count);
 }
 
 function resolveScheduledDate(selectedDateIso, schedule, options = {}) {
-    const { weekday, hourLocal, timeZone } = schedule;
-    const { baseDate = new Date(), allowPastSelection = false } = options;
-
-    const fallback = getNextScheduledDate(baseDate, schedule);
+    const { baseDate = new Date(), allowPastSelection = false, timeOverride } = options;
+    const fallback = getNextScheduledDate(baseDate, schedule, timeOverride);
 
     if (!selectedDateIso) {
         return fallback;
     }
+
+    const { timeZone } = schedule;
+    const hourLocal = timeOverride?.hourLocal ?? schedule.hourLocal;
+    const minuteLocal = timeOverride?.minuteLocal ?? schedule.minuteLocal ?? 0;
 
     const parsed = DateTime.fromISO(selectedDateIso, { zone: timeZone });
     if (!parsed.isValid) {
@@ -64,7 +70,7 @@ function resolveScheduledDate(selectedDateIso, schedule, options = {}) {
 
     const scheduled = parsed.set({
         hour: hourLocal,
-        minute: 0,
+        minute: minuteLocal,
         second: 0,
         millisecond: 0
     });
@@ -73,7 +79,7 @@ function resolveScheduledDate(selectedDateIso, schedule, options = {}) {
         const now = DateTime.fromJSDate(baseDate).setZone(timeZone);
         if (scheduled < now) {
             console.warn(`Received past scheduled date option '${selectedDateIso}', defaulting to next occurrence.`);
-            return getNextScheduledDate(now.toJSDate(), schedule);
+            return getNextScheduledDate(now.toJSDate(), schedule, timeOverride);
         }
     }
 
@@ -81,7 +87,7 @@ function resolveScheduledDate(selectedDateIso, schedule, options = {}) {
 }
 
 module.exports = {
-    getNextWeekdayAtHour,
+    getNextWeekdayAtTime,
     getUpcomingWeekdayOccurrences,
     getNextScheduledDate,
     getUpcomingScheduledDates,

@@ -5,7 +5,7 @@ const {
     getUpcomingScheduledDates,
     resolveScheduledDate
 } = require('../../utils/schedule-helper');
-const { ConfirmSchedule } = require('../../constants');
+const { ConfirmSchedule, ConfirmTimes } = require('../../constants');
 
 const PLAYERS_ROLE_ID = process.env.PLAYERS_ROLE_ID;
 const DISPLAY_EMOJIS = [':one:', ':two:', ':three:', ':four:'];
@@ -13,19 +13,33 @@ const REACTION_EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 const scheduleConfig = Object.freeze({
     weekday: ConfirmSchedule.WEEKDAY,
     hourLocal: ConfirmSchedule.HOUR_LOCAL,
+    minuteLocal: ConfirmSchedule.MINUTE_LOCAL,
     timeZone: ConfirmSchedule.TIME_ZONE
 });
+const timeOverrides = new Map(
+    ConfirmTimes.map(time => [time.value, { hourLocal: time.hour, minuteLocal: time.minute }])
+);
 
-function getNextSaturday(baseDate = new Date()) {
-    return getNextScheduledDate(baseDate, scheduleConfig);
+function getTimeOverride(timeValue) {
+    if (!timeValue) {
+        return null;
+    }
+    return timeOverrides.get(timeValue) ?? null;
 }
 
-function getUpcomingSaturdays(count = 4, baseDate = new Date()) {
-    return getUpcomingScheduledDates(count, scheduleConfig, baseDate);
+function getNextSaturday(baseDate = new Date(), timeOverride) {
+    return getNextScheduledDate(baseDate, scheduleConfig, timeOverride);
 }
 
-function resolveConfirmDate(selectedDateIso) {
-    return resolveScheduledDate(selectedDateIso, scheduleConfig, { baseDate: new Date() });
+function getUpcomingSaturdays(count = 4, baseDate = new Date(), timeOverride) {
+    return getUpcomingScheduledDates(count, scheduleConfig, baseDate, timeOverride);
+}
+
+function resolveConfirmDate(selectedDateIso, timeOverride, baseDate = new Date()) {
+    return resolveScheduledDate(selectedDateIso, scheduleConfig, {
+        baseDate,
+        timeOverride
+    });
 }
 
 function formatUpcomingSaturdaysList(dates) {
@@ -38,7 +52,9 @@ function formatUpcomingSaturdaysList(dates) {
 
 async function sendConfirmRequest(interaction) {
     const selectedDateIso = interaction.options.getString('date', false);
-    const scheduledDate = resolveConfirmDate(selectedDateIso);
+    const timeValue = interaction.options.getString('time', false);
+    const timeOverride = getTimeOverride(timeValue);
+    const scheduledDate = resolveConfirmDate(selectedDateIso, timeOverride);
     const timestamp = Math.floor(scheduledDate.getTime() / 1000);
     const shouldTagPlayers = interaction.options.getBoolean('tag') ?? false;
 
@@ -58,7 +74,9 @@ async function sendConfirmRequest(interaction) {
 }
 
 async function sendConfirmList(interaction) {
-    const saturdays = getUpcomingSaturdays();
+    const timeValue = interaction.options.getString('time', false);
+    const timeOverride = getTimeOverride(timeValue);
+    const saturdays = getUpcomingSaturdays(4, new Date(), timeOverride);
     const shouldTagPlayers = interaction.options.getBoolean('tag') ?? false;
 
     if (saturdays.length === 0) {

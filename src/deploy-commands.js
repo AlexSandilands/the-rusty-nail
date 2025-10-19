@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const { REST, Routes, SlashCommandBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
-const { ConfirmSchedule, DndRules, DndMoods } = require('./constants');
+const { ConfirmSchedule, ConfirmTimes, DndRules, DndMoods } = require('./constants');
 const { getUpcomingWeekdayOccurrences } = require('./utils/datetime-helper');
 
 const token = process.env.DISCORD_TOKEN;
@@ -25,6 +25,7 @@ const confirmDateChoices = (() => {
             new Date(),
             ConfirmSchedule.WEEKDAY,
             ConfirmSchedule.HOUR_LOCAL,
+            ConfirmSchedule.MINUTE_LOCAL,
             ConfirmSchedule.TIME_ZONE,
             4
         );
@@ -41,6 +42,11 @@ const confirmDateChoices = (() => {
         return [];
     }
 })();
+
+const confirmTimeChoices = ConfirmTimes.map(({ value, label }) => ({
+    name: label,
+    value
+}));
 
 const classChoices = Object.entries(DndRules)
     .filter(([key]) => key !== 'PHB')
@@ -65,7 +71,7 @@ const commands = [
                 .addSubcommand(subcommand =>
                     subcommand
                         .setName('prompt')
-                        .setDescription('Send a confirmation prompt for the selected Saturday at 8 PM NZ.')
+                        .setDescription('Send a confirmation prompt for the selected Saturday (defaults to 8 PM NZ).')
                         .addBooleanOption(option =>
                             option
                                 .setName('tag')
@@ -81,15 +87,39 @@ const commands = [
                             }
 
                             return option;
+                        })
+                        .addStringOption(option => {
+                            option
+                                .setName('time')
+                                .setDescription('Pick a start time (defaults to 8:00 PM).')
+                                .setRequired(false);
+
+                            if (confirmTimeChoices.length > 0) {
+                                option.addChoices(...confirmTimeChoices);
+                            }
+
+                            return option;
                         }))
                 .addSubcommand(subcommand =>
                     subcommand
                         .setName('list')
-                        .setDescription('List the next four Saturdays at 8 PM NZ.')
+                        .setDescription('List the next four Saturdays (defaults to 8 PM NZ).')
                         .addBooleanOption(option =>
                             option
                                 .setName('tag')
-                                .setDescription('Mention the players role in the message.'))))
+                                .setDescription('Mention the players role in the message.'))
+                        .addStringOption(option => {
+                            option
+                                .setName('time')
+                                .setDescription('Pick a start time (defaults to 8:00 PM).')
+                                .setRequired(false);
+
+                            if (confirmTimeChoices.length > 0) {
+                                option.addChoices(...confirmTimeChoices);
+                            }
+
+                            return option;
+                        })))
         .addSubcommandGroup(group =>
             group
                 .setName('react')
