@@ -3,7 +3,7 @@ require('dotenv').config();
 const { REST, Routes, SlashCommandBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
 const { ConfirmSchedule, ConfirmTimes, DndRules, DndMoods } = require('./constants');
-const { getUpcomingWeekdayOccurrences } = require('./utils/datetime-helper');
+const { getUpcomingWeekdayOccurrences } = require('./utils/schedule-helper');
 
 const token = process.env.DISCORD_TOKEN;
 const clientId = process.env.CLIENT_ID;
