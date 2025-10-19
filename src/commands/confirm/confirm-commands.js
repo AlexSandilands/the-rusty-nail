@@ -1,57 +1,31 @@
 require('dotenv').config();
 
-const { DateTime } = require('luxon');
-const { getNextWeekdayAtHour, getUpcomingWeekdayOccurrences } = require('../../utils/datetime-helper');
+const {
+    getNextScheduledDate,
+    getUpcomingScheduledDates,
+    resolveScheduledDate
+} = require('../../utils/datetime-helper');
 const { ConfirmSchedule } = require('../../constants');
 
 const PLAYERS_ROLE_ID = process.env.PLAYERS_ROLE_ID;
 const DISPLAY_EMOJIS = [':one:', ':two:', ':three:', ':four:'];
 const REACTION_EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
+const scheduleConfig = Object.freeze({
+    weekday: ConfirmSchedule.WEEKDAY,
+    hourLocal: ConfirmSchedule.HOUR_LOCAL,
+    timeZone: ConfirmSchedule.TIME_ZONE
+});
 
 function getNextSaturday(baseDate = new Date()) {
-    return getNextWeekdayAtHour(
-        baseDate,
-        ConfirmSchedule.WEEKDAY,
-        ConfirmSchedule.HOUR_LOCAL,
-        ConfirmSchedule.TIME_ZONE
-    );
+    return getNextScheduledDate(baseDate, scheduleConfig);
 }
 
 function getUpcomingSaturdays(count = 4, baseDate = new Date()) {
-    return getUpcomingWeekdayOccurrences(
-        baseDate,
-        ConfirmSchedule.WEEKDAY,
-        ConfirmSchedule.HOUR_LOCAL,
-        ConfirmSchedule.TIME_ZONE,
-        count
-    );
+    return getUpcomingScheduledDates(count, scheduleConfig, baseDate);
 }
 
 function resolveConfirmDate(selectedDateIso) {
-    if (!selectedDateIso) {
-        return getNextSaturday();
-    }
-
-    const parsed = DateTime.fromISO(selectedDateIso, { zone: ConfirmSchedule.TIME_ZONE });
-    if (!parsed.isValid) {
-        console.warn(`Received invalid date option '${selectedDateIso}', defaulting to next Saturday.`);
-        return getNextSaturday();
-    }
-
-    const scheduled = parsed.set({
-        hour: ConfirmSchedule.HOUR_LOCAL,
-        minute: 0,
-        second: 0,
-        millisecond: 0
-    });
-
-    const now = DateTime.now().setZone(ConfirmSchedule.TIME_ZONE);
-    if (scheduled < now) {
-        console.warn(`Received past date option '${selectedDateIso}', defaulting to next Saturday.`);
-        return getNextSaturday(now.toJSDate());
-    }
-
-    return scheduled.toUTC().toJSDate();
+    return resolveScheduledDate(selectedDateIso, scheduleConfig, { baseDate: new Date() });
 }
 
 function formatUpcomingSaturdaysList(dates) {
