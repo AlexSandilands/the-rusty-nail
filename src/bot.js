@@ -3,7 +3,7 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 const { sendCalendarLink, sendCalendarPic } = require('./commands.js');
 const ScreenshotSize = require('./constants');
 
@@ -14,53 +14,72 @@ if (!token) {
     process.exit(1);
 }
 
-const COMMAND_PREFIX = '/calendar';
-const USAGE_MESSAGE = 'Please specify a command: link or pic';
-const INVALID_COMMAND_MESSAGE = 'Invalid command. Use /calendar link or /calendar pic.';
-
 const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.Guilds
     ]
 });
 
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-    console.log(`Bot is operating in ${client.guilds.cache.size} server(s).`);
-
-    client.user.setActivity('/calendar', { type: 'LISTENING' });
+client.once(Events.ClientReady, readyClient => {
+    console.log(`Logged in as ${readyClient.user.tag}!`);
+    console.log(`Bot is operating in ${readyClient.guilds.cache.size} server(s).`);
+    
+    readyClient.user.setPresence({
+        activities: [{ name: '/nail', type: ActivityType.Listening }],
+        status: 'online',
+    });
 });
 
-client.on('messageCreate', async message => {
-    
-    if (!message.author.bot && message.content.toLowerCase().startsWith(COMMAND_PREFIX)) {
-        
-        const args = message.content.slice(COMMAND_PREFIX.length).trim().split(/ +/);
-        const command = args.shift().toLowerCase();
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) {
+        return;
+    }
 
-        if (!command) {
-            return message.channel.send(USAGE_MESSAGE);
+    if (interaction.commandName !== 'nail') {
+        return;
+    }
+
+    const subcommandGroup = interaction.options.getSubcommandGroup(false);
+
+    if (subcommandGroup !== 'calendar') {
+        await interaction.reply({
+            content: 'That Nail command is not implemented yet.',
+            ephemeral: true
+        }).catch(() => {});
+        return;
+    }
+
+    const subcommand = interaction.options.getSubcommand();
+
+    try {
+        switch (subcommand) {
+        case 'link':
+            await sendCalendarLink(interaction);
+            break;
+        case 'pic': {
+            const sizeChoice = interaction.options.getString('size') ?? 'small';
+            const screenshotSize = sizeChoice === 'large' ? ScreenshotSize.LARGE : ScreenshotSize.SMALL;
+            await sendCalendarPic(interaction, screenshotSize);
+            break;
+        }
+        default:
+            await interaction.reply({
+                content: 'That calendar command is not implemented yet.',
+                ephemeral: true
+            }).catch(() => {});
+        }
+    } catch (error) {
+        console.error(`Error executing slash command '${subcommand}':`, error);
+
+        if (error && error.handled) {
+            return;
         }
 
-        try {
-            switch (command) {
-            case 'link':
-                await sendCalendarLink(message);
-                break;
-            case 'pic':
-                await sendCalendarPic(message, ScreenshotSize.SMALL);
-                break;
-            case 'pic-large':
-                await sendCalendarPic(message, ScreenshotSize.LARGE);
-                break;
-            default:
-                message.channel.send(INVALID_COMMAND_MESSAGE);
-            }
-        } catch (error) {
-            console.error(`Error executing command '${command}':`, error);
-            message.channel.send('You stabbed yourself with the Nail! (Tell Riv something is broken).');
+        const failureMessage = 'You stabbed yourself with the Nail! (Tell Riv something is broken).';
+        if (interaction.deferred || interaction.replied) {
+            await interaction.followUp({ content: failureMessage, ephemeral: true }).catch(() => {});
+        } else {
+            await interaction.reply({ content: failureMessage, ephemeral: true }).catch(() => {});
         }
     }
 });

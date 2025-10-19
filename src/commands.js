@@ -2,29 +2,56 @@ require('dotenv').config();
 
 const { AttachmentBuilder } = require('discord.js');
 const { captureGoogleSheet } = require('./screenshotHelper');
+const ScreenshotSize = require('./constants');
 
 const sheetsUrl = process.env.GOOGLE_SHEETS_URL;
 
-function sendCalendarLink(message) {
-
-    message.channel.send(sheetsUrl)
-            .then(() => console.log('Link sent successfully!'))
-            .catch(err => console.error('Error sending message:', err));
+function ensureSheetsUrl() {
+    if (!sheetsUrl) {
+        throw new Error('GOOGLE_SHEETS_URL is not defined.');
+    }
 }
 
-async function sendCalendarPic(message, screenshotSize) {
-    message.channel.send("Taking screenshot...");
+async function sendCalendarLink(interaction) {
+    ensureSheetsUrl();
+
+    await interaction.reply({ content: sheetsUrl });
+    console.log('Calendar link sent successfully.');
+}
+
+async function sendCalendarPic(interaction, screenshotSize) {
+    ensureSheetsUrl();
+
+    const sizeLabel = screenshotSize === ScreenshotSize.LARGE ? 'Large' : 'Small';
+    await interaction.deferReply();
 
     try {
-
         const screenshotBuffer = await captureGoogleSheet(sheetsUrl, screenshotSize);
-        const attachment = new AttachmentBuilder(screenshotBuffer, { name: 'screenshot.png' });
-        message.channel.send({ files: [attachment] });
+        const attachment = new AttachmentBuilder(screenshotBuffer, { name: `calendar-${sizeLabel.toLowerCase()}.png` });
 
+        await interaction.editReply({
+            content: `Here is the ${sizeLabel.toLowerCase()} calendar snapshot.`,
+            files: [attachment]
+        });
+
+        console.log(`${sizeLabel} calendar screenshot sent.`);
     } catch (error) {
-        
         console.error('Failed to capture screenshot:', error);
-        message.channel.send('Failed to capture the screenshot. Please check the logs.');
+
+        const failureMessage = 'Failed to capture the screenshot. Please check the logs.';
+        if (interaction.deferred || interaction.replied) {
+            await interaction.editReply({ content: failureMessage }).catch(async () => {
+                await interaction.followUp({ content: failureMessage, ephemeral: true }).catch(() => {});
+            });
+        } else {
+            await interaction.reply({ content: failureMessage, ephemeral: true }).catch(() => {});
+        }
+
+        if (error && typeof error === 'object') {
+            error.handled = true;
+        }
+
+        throw error;
     }
 }
 
