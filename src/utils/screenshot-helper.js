@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const ScreenshotSize = require('../constants');
+const { ScreenshotSize } = require('../constants');
 
 // Try more specific grid containers before generic fallbacks
 const gridSelectors = [
