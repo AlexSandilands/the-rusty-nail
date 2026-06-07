@@ -64,6 +64,10 @@ const commands = [
     new SlashCommandBuilder()
         .setName('nail')
         .setDescription('Interact with The Rusty Nail bot.')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('showtheway')
+                .setDescription('The Nail shows the way…'))
         .addSubcommandGroup(group =>
             group
                 .setName('confirm')

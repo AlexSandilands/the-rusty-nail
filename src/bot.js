@@ -8,6 +8,7 @@ const { sendCalendarLink, sendCalendarPic } = require('./commands/calendar/calen
 const { sendConfirmRequest, sendConfirmList } = require('./commands/confirm/confirm-commands.js');
 const { sendRulesPhb, sendRulesClass } = require('./commands/rules/rules-commands.js');
 const { sendReactMood } = require('./commands/react/react-commands.js');
+const { sendShowTheWay } = require('./commands/showtheway/showtheway-commands.js');
 const { ScreenshotSize } = require('./constants');
 
 const token = process.env.DISCORD_TOKEN;
@@ -49,6 +50,9 @@ client.on(Events.InteractionCreate, async interaction => {
         switch (subcommandGroup ?? '') {
         case '':
             switch (subcommand) {
+            case 'showtheway':
+                await sendShowTheWay(interaction);
+                break;
             default:
                 await interaction.reply({
                     content: 'That Nail command is not implemented yet.',
