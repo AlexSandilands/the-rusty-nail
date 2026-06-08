@@ -29,7 +29,7 @@ async function sendShowTheWay(interaction) {
         ephemeral: true
     });
 
-    console.log('Sent showtheway response.');
+    console.log(`Sent showtheway response to ${interaction.user.tag} (${interaction.user.id}).`);
 }
 
 module.exports = { sendShowTheWay };
