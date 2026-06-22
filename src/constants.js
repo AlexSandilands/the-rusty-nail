@@ -33,12 +33,12 @@ const DndRules = Object.freeze({
 });
 
 const DndMoods = Object.freeze({
-    excited: 'dnd excited',
-    worried: 'dnd worried',
-    scared: 'dnd scared',
-    happy: 'dnd happy',
-    sad: 'dnd sad',
-    angry: 'dnd angry'
+    excited: 'excited',
+    worried: 'worried',
+    scared: 'scared',
+    happy: 'happy',
+    sad: 'sad',
+    angry: 'angry'
 });
 
 module.exports = {

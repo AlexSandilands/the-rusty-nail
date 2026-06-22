@@ -2,40 +2,39 @@ require('dotenv').config();
 
 const { DndMoods } = require('../../constants');
 
-const TENOR_API_KEY = process.env.TENOR_API_KEY;
-const TENOR_CLIENT_KEY = 'the-rusty-nail-bot';
+const GIPHY_API_KEY = process.env.GIPHY_API_KEY;
 const DEFAULT_LIMIT = 20;
 
 function selectGifUrl(result) {
-    if (!result || !result.media_formats) {
+    if (!result || !result.images) {
         return null;
     }
 
-    const { gif, mediumgif, tinygif, nanogif, mp4 } = result.media_formats;
-    return gif?.url ?? mediumgif?.url ?? tinygif?.url ?? nanogif?.url ?? mp4?.url ?? null;
+    const { original, downsized, downsized_medium, fixed_height, fixed_width } = result.images;
+    return original?.url ?? downsized?.url ?? downsized_medium?.url ?? fixed_height?.url ?? fixed_width?.url ?? null;
 }
 
 async function fetchRandomGif(query) {
-    if (!TENOR_API_KEY) {
-        throw new Error('TENOR_API_KEY is not configured.');
+    if (!GIPHY_API_KEY) {
+        throw new Error('GIPHY_API_KEY is not configured.');
     }
 
     const params = new URLSearchParams({
         q: query,
-        key: TENOR_API_KEY,
-        client_key: TENOR_CLIENT_KEY,
+        api_key: GIPHY_API_KEY,
         limit: String(DEFAULT_LIMIT),
-        random: 'true'
+        rating: 'pg-13',
+        bundle: 'messaging_non_clips'
     });
 
-    const response = await fetch(`https://tenor.googleapis.com/v2/search?${params.toString()}`);
+    const response = await fetch(`https://api.giphy.com/v1/gifs/search?${params.toString()}`);
 
     if (!response.ok) {
-        throw new Error(`Tenor API request failed with status ${response.status}`);
+        throw new Error(`Giphy API request failed with status ${response.status}`);
     }
 
     const payload = await response.json();
-    const results = Array.isArray(payload.results) ? payload.results : [];
+    const results = Array.isArray(payload.data) ? payload.data : [];
 
     if (results.length === 0) {
         return null;
@@ -57,24 +56,27 @@ async function sendReactMood(interaction, providedMoodKey) {
         return;
     }
 
+    // Acknowledge within Discord's 3s interaction window before the Giphy fetch,
+    // otherwise a slow API response expires the token (DiscordAPIError 10062).
+    await interaction.deferReply().catch(() => {});
+
     try {
         const gifUrl = await fetchRandomGif(query);
 
         if (!gifUrl) {
-            await interaction.reply({
-                content: `I couldn't find a ${moodKey} GIF right now. Try again later!`,
-                ephemeral: true
+            await interaction.editReply({
+                content: `I couldn't find a ${moodKey} GIF right now. Try again later!`
             }).catch(() => {});
             return;
         }
 
-        await interaction.reply({ content: gifUrl });
+        await interaction.editReply({ content: gifUrl });
         console.log(`Sent '${moodKey}' reaction GIF: ${gifUrl}`);
     } catch (error) {
         console.error(`Failed to fetch GIF for mood '${moodKey}':`, error);
 
         const failureMessage = 'The tavern\'s GIF stash is empty. Try again later!';
-        await interaction.reply({ content: failureMessage, ephemeral: true }).catch(() => {});
+        await interaction.editReply({ content: failureMessage }).catch(() => {});
     }
 }
 
