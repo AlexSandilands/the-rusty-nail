@@ -53,17 +53,26 @@ Create a `.env` file (already ignored by git) with:
 - `CLIENT_ID` – Application (bot) client ID.
 - `GOOGLE_SHEETS_URL` – Spreadsheet URL for the calendar.
 - `PLAYERS_ROLE_ID` – Role ID to mention when `tag` is true.
-- `TENOR_API_KEY` – Tenor GIF API key.
+- `GIPHY_API_KEY` – Giphy GIF API key.
 - *(Optional)* `GUILD_ID` – Populate only for guild‑scoped deploys during local testing.
 
 ### Where to get the keys
 - **Discord credentials:** Developer Portal → Applications → your bot → **Bot** (token) and **OAuth2 → General** (client ID). Copy the role ID by right‑clicking the role in Discord with Developer Mode enabled.
-- **Tenor API key:** See Google’s Tenor quickstart and create an API key under **Credentials**.
+- **Giphy API key:** Create an app at the [Giphy Developers dashboard](https://developers.giphy.com/dashboard/) and copy its API key.
 - **Google Sheets URL:** Share the target sheet and use the published viewable URL. 
 
 ---
 
 ## Local Development
+
+> **Node version:** This project targets Node 20–22 (see `engines` in `package.json` and `.nvmrc`). Newer Node (e.g. 26) breaks Puppeteer's dependencies, so the bot will not boot. If your system Node is too new, use [fnm](https://github.com/Schniz/fnm) to run the right version. We deliberately do **not** auto-activate fnm on `cd` — activate it per shell when doing dev:
+> ```fish
+> fnm install 22       # one-time, installs Node 22
+> fnm env --shell fish | source   # activate fnm in this shell (use --shell bash/zsh as needed)
+> fnm use              # switch to the version pinned in .nvmrc (Node 22)
+> ```
+> Or run a single command without changing your shell: `fnm exec --using=22 npm start`.
+
 1. Install dependencies:
    ```bash
    npm install
@@ -104,6 +113,6 @@ The scheduled workflow lives at `.github/workflows/deploy-commands.yml`. It runs
 ## Troubleshooting
 - **Commands not updating?** If you previously set `GUILD_ID`, make sure it’s unset for global deploys. Then re‑run `npm run deploy` or the scheduled workflow.
 - **Calendar screenshot issues?** Confirm the `GOOGLE_SHEETS_URL` is a viewable/published URL and the bot has network access.
-- **GIFs not appearing?** Verify your `TENOR_API_KEY` and that Tenor API access is enabled in your Google Cloud project.
+- **GIFs not appearing?** Verify your `GIPHY_API_KEY` is valid and active in the Giphy Developers dashboard.
 
 ---
